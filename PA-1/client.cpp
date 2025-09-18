@@ -6,9 +6,9 @@
     Date: 2/8/20
 	
 	Please include your Name, UIN, and the date below
-	Name:
-	UIN:
-	Date:
+	Name: Jack Anderson	
+	UIN: 833007410
+	Date: 09/17/2025
 */
 #include "common.h"
 #include "FIFORequestChannel.h"
@@ -17,6 +17,15 @@ using namespace std;
 
 
 int main (int argc, char *argv[]) {
+
+	pid_t pid = fork();
+	if(pid == 0) {
+		char* args[] = {(char*)"./server", nullptr};
+		execvp(args[0], args);
+		cerr << "exec failed\n";
+		return 1;
+	}
+
 	int opt;
 	int p = 1;
 	double t = 0.0;
@@ -45,7 +54,8 @@ int main (int argc, char *argv[]) {
 	// example data point request
     char buf[MAX_MESSAGE]; // 256
     datamsg x(1, 0.0, 1);
-	
+
+
 	memcpy(buf, &x, sizeof(datamsg));
 	chan.cwrite(buf, sizeof(datamsg)); // question
 	double reply;

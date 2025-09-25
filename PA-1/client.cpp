@@ -27,9 +27,9 @@ int main (int argc, char *argv[]) {
 	}
 
 	int opt;
-	int p = 1;
+	int p = 0;
 	double t = 0.0;
-	int e = 1;
+	int e = 0;
 	
 	string filename = "";
 	while ((opt = getopt(argc, argv, "p:t:e:f:")) != -1) {
@@ -49,18 +49,44 @@ int main (int argc, char *argv[]) {
 		}
 	}
 
+
     FIFORequestChannel chan("control", FIFORequestChannel::CLIENT_SIDE);
 	
-	// example data point request
     char buf[MAX_MESSAGE]; // 256
-    datamsg x(1, 0.0, 1);
+	double interv = 0.004;
 
+	if(p != 0 && e == 0 && t == 0.0) {
+		ofstream x1file("received/x1.csv");
+		if (!x1file.is_open()) {
+			cerr << "Cannot open x1.csv for writing\n";
+			return 1;
+		}
 
-	memcpy(buf, &x, sizeof(datamsg));
-	chan.cwrite(buf, sizeof(datamsg)); // question
-	double reply;
-	chan.cread(&reply, sizeof(double)); //answer
-	cout << "For person " << p << ", at time " << t << ", the value of ecg " << e << " is " << reply << endl;
+		for(int i = 0; i < 1000; ++i) {
+			t = interv * i;
+			datamsg x1(p, t, 1);
+			memcpy(buf, &x1, sizeof(datamsg));
+			chan.cwrite(buf, sizeof(datamsg)); // question
+			double reply1;
+			chan.cread(&reply1, sizeof(double)); //answer
+
+			datamsg x2(p, t, 2);
+			memcpy(buf, &x2, sizeof(datamsg));
+			chan.cwrite(buf, sizeof(datamsg)); // question
+			double reply2;
+			chan.cread(&reply2, sizeof(double)); //answer
+
+			x1file << t << "," << reply1 << "," << reply2 << endl;
+		}
+	}
+	else{
+		datamsg x(p, t, e);
+		memcpy(buf, &x, sizeof(datamsg));
+		chan.cwrite(buf, sizeof(datamsg)); // question
+		double reply;
+		chan.cread(&reply, sizeof(double)); //answer
+		cout << "For person " << p << ", at time " << t << ", the value of ecg " << e << " is " << reply << endl;
+	}
 	
     // sending a non-sense message, you need to change this
 	filemsg fm(0, 0);
@@ -73,8 +99,9 @@ int main (int argc, char *argv[]) {
 	chan.cwrite(buf2, len);  // I want the file length;
 
 	delete[] buf2;
-	
+
 	// closing the channel    
     MESSAGE_TYPE m = QUIT_MSG;
     chan.cwrite(&m, sizeof(MESSAGE_TYPE));
+
 }

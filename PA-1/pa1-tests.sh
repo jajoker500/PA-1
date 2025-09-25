@@ -33,7 +33,7 @@ echo -e "\nSCORE: ${SCORE}/85\n"
 
 expected_output="For person 1, at time 0.004, the value of ecg 1 is 0.68"
 program_output=$(./client -p 1 -t 0.004 -e 1 2>&1)
-
+1, at time 0, the value of ecg 1 is 0.635
 if [[ $? -eq 0 && "$program_output" == *"$expected_output"* ]]; then
 	echo -e " ${GREEN}Passed${NC}"
 	SCORE=$(($SCORE+5))

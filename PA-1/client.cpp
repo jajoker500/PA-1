@@ -27,24 +27,33 @@ int main (int argc, char *argv[]) {
 	}
 
 	int opt;
-	int p = 0;
+	int p = 1;
 	double t = 0.0;
-	int e = 0;
+	int e = 1;
+
+	bool is_p = false;
+	bool is_ti = false;
+	bool is_e = false;
+	bool is_f = false;
 	
 	string filename = "";
 	while ((opt = getopt(argc, argv, "p:t:e:f:")) != -1) {
 		switch (opt) {
 			case 'p':
 				p = atoi (optarg);
+				is_p = true;
 				break;
 			case 't':
 				t = atof (optarg);
+				is_ti = true;
 				break;
 			case 'e':
 				e = atoi (optarg);
+				is_e = true;
 				break;
 			case 'f':
 				filename = optarg;
+				is_f = true;
 				break;
 		}
 	}
@@ -55,7 +64,7 @@ int main (int argc, char *argv[]) {
     char buf[MAX_MESSAGE]; // 256
 	double interv = 0.004;
 
-	if(p != 0 && e == 0 && t == 0.0) {
+	if(is_p && !is_ti && !is_e) {
 		ofstream x1file("received/x1.csv");
 		if (!x1file.is_open()) {
 			cerr << "Cannot open x1.csv for writing\n";
@@ -78,8 +87,55 @@ int main (int argc, char *argv[]) {
 
 			x1file << t << "," << reply1 << "," << reply2 << endl;
 		}
-	}
-	else{
+	} 
+	else if(is_f && !is_e && !is_ti && !is_p) {
+		// sending a non-sense message, you need to change this
+
+		ofstream file("received/" + filename);
+		if (!file.is_open()) {
+			cerr << "Cannot open file for writing\n";
+			return 1;
+		}
+
+		filemsg fm(0, 0);
+		string fname = filename;
+		
+		int len = sizeof(filemsg) + (fname.size() + 1);
+		char* buf2 = new char[len];
+		memcpy(buf2, &fm, sizeof(filemsg));
+		strcpy(buf2 + sizeof(filemsg), fname.c_str());
+		chan.cwrite(buf2, len);  // I want the file length;
+
+		__int64_t fs;
+		chan.cread(&fs, sizeof(__int64_t));
+
+		int offset = 0;
+		int length = MAX_MESSAGE;
+		while (offset < fs) {
+			if(offset + MAX_MESSAGE > fs) {
+				length = fs - offset;
+			}
+			filemsg fm(offset, length);
+
+			int len = sizeof(filemsg) + (fname.size() + 1);
+			char* buf3 = new char[len];
+			memcpy(buf3, &fm, sizeof(filemsg));
+			strcpy(buf3 + sizeof(filemsg), fname.c_str());
+			chan.cwrite(buf3, len);
+
+			delete[] buf3;
+
+			char* line = new char[length];
+			chan.cread(line, length);
+			file.write(line, length);
+
+			delete[] line;
+			offset += length;
+		}
+
+		delete[] buf2;
+	} 	
+	else {
 		datamsg x(p, t, e);
 		memcpy(buf, &x, sizeof(datamsg));
 		chan.cwrite(buf, sizeof(datamsg)); // question
@@ -88,17 +144,6 @@ int main (int argc, char *argv[]) {
 		cout << "For person " << p << ", at time " << t << ", the value of ecg " << e << " is " << reply << endl;
 	}
 	
-    // sending a non-sense message, you need to change this
-	filemsg fm(0, 0);
-	string fname = "teslkansdlkjflasjdf.dat";
-	
-	int len = sizeof(filemsg) + (fname.size() + 1);
-	char* buf2 = new char[len];
-	memcpy(buf2, &fm, sizeof(filemsg));
-	strcpy(buf2 + sizeof(filemsg), fname.c_str());
-	chan.cwrite(buf2, len);  // I want the file length;
-
-	delete[] buf2;
 
 	// closing the channel    
     MESSAGE_TYPE m = QUIT_MSG;

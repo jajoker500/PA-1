@@ -52,39 +52,40 @@ fi
 echo -e "\nSCORE: ${SCORE}/85\n"
 
 # Test 3
-dd if=/dev/zero of=test.bin bs=1024k count=10
+
+dd if=/dev/zero of=BIMDC/test.bin bs=1024k count=10
 ./client -f test.bin
-if diff -qwB test.bin received/test.bin > /dev/null;then
+if diff -qwB BIMDC/test.bin received/test.bin > /dev/null;then
 	echo -e "  ${GREEN}Passed${NC}"
         SCORE=$(($SCORE+20))
 else
         echo -e "  ${RED}Failed${NC}"
 fi
 
-rm test.bin received/test.bin
+rm BIMDC/test.bin received/test.bin
 
-truncate -s 10000000 test.bin
+truncate -s 10000000 BIMDC/test.bin
 ./client -f test.bin
-if diff -qwB test.bin received/test.bin > /dev/null;then
+if diff -qwB BIMDC/test.bin received/test.bin > /dev/null;then
         echo -e "  ${GREEN}Passed${NC}"
         SCORE=$(($SCORE+10))
 else
         echo -e "  ${RED}Failed${NC}"
 fi
 
-rm test.bin received/test.bin
+rm BIMDC/test.bin received/test.bin
 
-head -c 100000000 /dev/zero > test.bin
-truncate -s 100000000 test.bin
+head -c 100000000 /dev/zero > BIMDC/test.bin
+truncate -s 100000000 BIMDC/test.bin
 ./client -f test.bin
-if diff -qwB test.bin received/test.bin > /dev/null;then
+if diff -qwB BIMDC/test.bin received/test.bin > /dev/null;then
         echo -e "  ${GREEN}Passed${NC}"
         SCORE=$(($SCORE+5))
 else
         echo -e "  ${RED}Failed${NC}"
 fi
 
-# rm test.bin received/test.bin
+rm BIMDC/test.bin received/test.bin
 
 #test 4
 ./client -c -f 5.csv

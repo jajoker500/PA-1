@@ -1,1 +1,35 @@
+_____________________________________
+File Size (MB)| Transfer Time (Sec)
+_____________________________________
+1             | .421
+10            | 3.12
+25            | 8.477
+50            | 9.85
+100           | 17.979
+              |
+              |  
+              |(Where each * represents approx. 1 second)
+              |
+1             | *
+10            | ***
+25            | ********
+50            | **********
+100           | ******************
+____________________________________
 
+Does this trend make sense? 
+
+Yes, this trend makes sense because as the size is larger it will take more time
+for the server and client to work together to move more bytes. 
+The server and client are limited by the max size they are allowed to move at a time 
+requiring multiple messages to be sent and recieved which takes time.
+
+____________________________________
+
+What is the main bottleneck that stops the code from transferring files faster?
+
+The main bottleneck is the size of chunks allowed to be transferred at a time. 
+If the entire file could be transferred with one message it would be a lot faster 
+as their would be no communication delay. The issue is the risk of data corruption
+as you move large files hence the implmentation with chunks.
+_____________________________________
